@@ -2,427 +2,314 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fotogrametria 3D</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Captura AR</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 500px;
+        html, body {
             width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: white;
+            overflow: hidden;
+            position: fixed;
         }
-
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            text-align: center;
-            font-size: 28px;
-        }
-
-        .subtitle {
-            color: #666;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 40px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #f8f9ff;
-            margin-bottom: 20px;
-        }
-
-        .upload-area:hover {
-            border-color: #764ba2;
-            background: #f0f2ff;
-        }
-
-        .upload-area.dragover {
-            border-color: #764ba2;
-            background: #e8ebff;
-            transform: scale(1.02);
-        }
-
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .upload-text {
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .upload-subtext {
-            color: #999;
-            font-size: 13px;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .file-list {
-            margin-bottom: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .file-item {
-            background: #f5f5f5;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 8px;
+        .container {
+            width: 100%;
+            height: 100%;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
+            flex-direction: column;
         }
-
-        .file-item-name {
-            color: #333;
+        .camera-section {
             flex: 1;
-            word-break: break-all;
+            position: relative;
+            background: #000;
+            overflow: hidden;
         }
-
-        .file-item-remove {
-            color: #e74c3c;
-            cursor: pointer;
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #000;
+        }
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            border: 3px dashed #667eea;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #667eea;
+            text-align: center;
+        }
+        .count {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            padding: 10px 16px;
+            border-radius: 20px;
             font-weight: bold;
-            margin-left: 10px;
+            font-size: 1.1em;
         }
-
-        .file-item-remove:hover {
-            color: #c0392b;
+        .dots {
+            position: absolute;
+            bottom: 140px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 12px;
         }
-
-        .button-group {
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid #667eea;
+        }
+        .dot.ok {
+            background: #4ade80;
+            border-color: #4ade80;
+        }
+        .buttons {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
             display: flex;
             gap: 10px;
         }
-
         button {
             flex: 1;
-            padding: 12px;
+            padding: 14px;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
+            font-weight: bold;
+            font-size: 1em;
             cursor: pointer;
-            transition: all 0.3s ease;
+            -webkit-appearance: none;
         }
-
-        .btn-upload {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .start {
+            background: #667eea;
             color: white;
         }
-
-        .btn-upload:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        .capture {
+            background: #4ade80;
+            color: white;
         }
-
-        .btn-upload:disabled {
+        .cancel {
+            background: #ff6b6b;
+            color: white;
+        }
+        .process {
+            background: #667eea;
+            color: white;
+        }
+        button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
-
-        .btn-clear {
-            background: #ecf0f1;
-            color: #333;
-        }
-
-        .btn-clear:hover {
-            background: #bdc3c7;
-        }
-
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            display: none;
-            font-size: 14px;
-        }
-
-        .status.show {
-            display: block;
-        }
-
-        .status.loading {
-            background: #e3f2fd;
-            color: #1976d2;
-            border: 1px solid #1976d2;
-        }
-
-        .status.success {
-            background: #e8f5e9;
-            color: #388e3c;
-            border: 1px solid #388e3c;
-        }
-
-        .status.error {
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #c62828;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: #ecf0f1;
-            border-radius: 10px;
-            margin-top: 10px;
-            overflow: hidden;
-            display: none;
-        }
-
-        .progress-bar.show {
-            display: block;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .file-count {
-            color: #666;
-            font-size: 13px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e8f5e9;
-            border-radius: 10px;
-            border: 1px solid #388e3c;
-            display: none;
-        }
-
-        .result.show {
-            display: block;
-        }
-
-        .result-title {
-            color: #388e3c;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .result-text {
-            color: #2e7d32;
-            font-size: 14px;
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎬 Fotogrametria 3D</h1>
-        <p class="subtitle">Converta suas fotos em modelo 3D</p>
-
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">📸</div>
-            <div class="upload-text">Clique ou arraste fotos aqui</div>
-            <div class="upload-subtext">Mínimo 10 fotos, máximo 30</div>
-            <input type="file" id="fileInput" multiple accept="image/*">
+        <div class="camera-section">
+            <video id="video" playsinline autoplay muted></video>
+            <div class="overlay"></div>
+            <div class="info">
+                <div id="status">Pressione Iniciar</div>
+            </div>
+            <div class="count"><span id="count">0</span>/30</div>
+            <div class="dots" id="dots"></div>
+            <div class="buttons">
+                <button class="start" id="btnStart" onclick="start()">Iniciar</button>
+                <button class="capture hidden" id="btnCapture" onclick="capture()">Capturar</button>
+                <button class="cancel hidden" id="btnCancel" onclick="cancel()">Cancelar</button>
+                <button class="process hidden" id="btnProcess" onclick="process()">Processar</button>
+            </div>
         </div>
-
-        <div class="file-count" id="fileCount"></div>
-
-        <div class="file-list" id="fileList"></div>
-
-        <div class="button-group">
-            <button class="btn-upload" id="uploadBtn" disabled>Enviar Fotos</button>
-            <button class="btn-clear" id="clearBtn">Limpar</button>
-        </div>
-
-        <div class="progress-bar" id="progressBar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-
-        <div class="status" id="status"></div>
-
-        <div class="result" id="result"></div>
     </div>
-
     <script>
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
-        const fileCount = document.getElementById('fileCount');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const status = document.getElementById('status');
-        const progressBar = document.getElementById('progressBar');
-        const progressFill = document.getElementById('progressFill');
-        const result = document.getElementById('result');
-
-        let selectedFiles = [];
-
-        // MUDE ISSO PARA O URL DO SEU SERVIDOR NO RENDER
-        const API_URL = 'https://dashboard.render.com/project/prj-d8tjcl8js32c73bq7b60
-
-        uploadArea.addEventListener('click', () => fileInput.click());
-
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-        });
-
-        function handleFiles(files) {
-            selectedFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-
-            if (selectedFiles.length > 30) {
-                selectedFiles = selectedFiles.slice(0, 30);
-                showStatus('Máximo 30 fotos. As primeiras 30 foram selecionadas.', 'error');
-            }
-
-            updateFileList();
-        }
-
-        function updateFileList() {
-            fileList.innerHTML = '';
-            fileCount.textContent = `${selectedFiles.length} foto(s) selecionada(s)`;
-
-            selectedFiles.forEach((file, index) => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <span class="file-item-name">${file.name}</span>
-                    <span class="file-item-remove" onclick="removeFile(${index})">✕</span>
-                `;
-                fileList.appendChild(fileItem);
-            });
-
-            uploadBtn.disabled = selectedFiles.length < 10;
-
-            if (selectedFiles.length < 10) {
-                uploadBtn.textContent = `Enviar Fotos (${selectedFiles.length}/10)`;
-            } else {
-                uploadBtn.textContent = 'Enviar Fotos';
+        const video = document.getElementById('video');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        let photos = [];
+        let isCapturing = false;
+        let photoCount = 0;
+        let stream = null;
+        const BACKEND_URL = 'http://localhost:3000';
+        async function init() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' },
+                    audio: false
+                });
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    console.log('Vídeo carregado');
+                    video.play();
+                };
+                const dotsContainer = document.getElementById('dots');
+                for (let i = 0; i < 30; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    dot.id = `dot${i}`;
+                    dotsContainer.appendChild(dot);
+                }
+            } catch (error) {
+                alert('Erro: ' + error.message);
             }
         }
-
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            updateFileList();
+        function start() {
+            isCapturing = true;
+            photos = [];
+            photoCount = 0;
+            document.getElementById('btnStart').classList.add('hidden');
+            document.getElementById('btnCapture').classList.remove('hidden');
+            document.getElementById('btnCancel').classList.remove('hidden');
+            document.getElementById('status').textContent = 'Clique para capturar';
+            for (let i = 0; i < 30; i++) {
+                document.getElementById(`dot${i}`).classList.remove('ok');
+            }
         }
-
-        clearBtn.addEventListener('click', () => {
-            selectedFiles = [];
-            fileInput.value = '';
-            fileList.innerHTML = '';
-            fileCount.textContent = '';
-            status.classList.remove('show');
-            progressBar.classList.remove('show');
-            result.classList.remove('show');
-            updateFileList();
-        });
-
-        uploadBtn.addEventListener('click', uploadFiles);
-
-        async function uploadFiles() {
-            if (selectedFiles.length < 10) {
-                showStatus('Selecione no mínimo 10 fotos!', 'error');
+        function capture() {
+            if (!isCapturing || photoCount >= 30) return;
+            setTimeout(() => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                if (canvas.width === 0 || canvas.height === 0) {
+                    console.error('Vídeo não carregou corretamente');
+                    alert('Erro: câmera não está pronta');
+                    return;
+                }
+                ctx.drawImage(video, 0, 0);
+                canvas.toBlob(blob => {
+                    if (blob) {
+                        photos.push(blob);
+                        photoCount++;
+                        document.getElementById(`dot${photoCount - 1}`).classList.add('ok');
+                        document.getElementById('count').textContent = photoCount;
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                        if (photoCount >= 30) {
+                            finish();
+                        }
+                    } else {
+                        alert('Erro ao capturar foto');
+                    }
+                }, 'image/jpeg', 0.85);
+            }, 100);
+        }
+        function cancel() {
+            isCapturing = false;
+            photos = [];
+            photoCount = 0;
+            document.getElementById('btnStart').classList.remove('hidden');
+            document.getElementById('btnCapture').classList.add('hidden');
+            document.getElementById('btnCancel').classList.add('hidden');
+            document.getElementById('btnProcess').classList.add('hidden');
+            document.getElementById('status').textContent = 'Pressione Iniciar';
+            document.getElementById('count').textContent = '0';
+            for (let i = 0; i < 30; i++) {
+                document.getElementById(`dot${i}`).classList.remove('ok');
+            }
+            if (video.paused) {
+                video.play().catch(e => console.error('Erro ao reproduzir vídeo:', e));
+            }
+        }
+        function finish() {
+            isCapturing = false;
+            document.getElementById('btnCapture').classList.add('hidden');
+            document.getElementById('btnCancel').classList.add('hidden');
+            document.getElementById('btnProcess').classList.remove('hidden');
+            document.getElementById('status').textContent = '✅ Pronto!';
+        }
+        async function process() {
+            if (photos.length === 0) {
+                alert('Nenhuma foto capturada');
                 return;
             }
-
-            const formData = new FormData();
-            selectedFiles.forEach(file => {
-                formData.append('photos', file);
-            });
-
-            uploadBtn.disabled = true;
-            showStatus('ENVIANDO FOTOS...', 'loading');
-            progressBar.classList.add('show');
-            result.classList.remove('show');
-
+            document.getElementById('status').textContent = '📤 Enviando fotos...';
+            document.getElementById('btnProcess').disabled = true;
             try {
-                const response = await fetch(`${API_URL}/process-photos`, {
+                const formData = new FormData();
+                photos.forEach((photo, index) => {
+                    formData.append('photos', photo, `photo_${index}.jpg`);
+                });
+                const response = await fetch(`${BACKEND_URL}/process-photos`, {
                     method: 'POST',
                     body: formData
                 });
-
                 if (!response.ok) {
-                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                    throw new Error(`Erro do servidor: ${response.status}`);
                 }
-
-                const data = await response.json();
-
-                progressFill.style.width = '100%';
-                showStatus('✓ Modelo 3D gerado com sucesso!', 'success');
-
-                result.classList.add('show');
-                result.innerHTML = `
-                    <div class="result-title">✓ Sucesso!</div>
-                    <div class="result-text">
-                        <strong>${data.photosReceived}</strong> fotos processadas<br>
-                        Seu modelo 3D está pronto!
-                    </div>
-                `;
-
-                setTimeout(() => {
-                    clearBtn.click();
-                }, 3000);
-
+                const result = await response.json();
+                if (result.modelUrl) {
+                    document.getElementById('status').textContent = '✅ Modelo 3D gerado!';
+                    alert('✅ Modelo 3D gerado com sucesso!\n\nURL: ' + result.modelUrl);
+                } else if (result.message) {
+                    document.getElementById('status').textContent = '✅ ' + result.message;
+                    alert('✅ ' + result.message);
+                } else {
+                    document.getElementById('status').textContent = '✅ Processamento concluído!';
+                    alert('✅ Processamento concluído!');
+                }
+                resetApp();
             } catch (error) {
                 console.error('Erro:', error);
-                showStatus(`❌ Erro: ${error.message}`, 'error');
-            } finally {
-                uploadBtn.disabled = false;
-                progressBar.classList.remove('show');
-                progressFill.style.width = '0%';
+                document.getElementById('status').textContent = '❌ Erro ao enviar';
+                alert('❌ Erro ao enviar fotos:\n' + error.message);
+                document.getElementById('btnProcess').disabled = false;
             }
         }
-
-        function showStatus(message, type) {
-            status.textContent = message;
-            status.className = `status show ${type}`;
+        function resetApp() {
+            isCapturing = false;
+            photos = [];
+            photoCount = 0;
+            document.getElementById('btnStart').classList.remove('hidden');
+            document.getElementById('btnCapture').classList.add('hidden');
+            document.getElementById('btnCancel').classList.add('hidden');
+            document.getElementById('btnProcess').classList.add('hidden');
+            document.getElementById('btnProcess').disabled = false;
+            document.getElementById('status').textContent = 'Pressione Iniciar';
+            document.getElementById('count').textContent = '0';
+            for (let i = 0; i < 30; i++) {
+                document.getElementById(`dot${i}`).classList.remove('ok');
+            }
+            if (video.paused) {
+                video.play().catch(e => console.error('Erro ao reproduzir vídeo:', e));
+            }
         }
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>
