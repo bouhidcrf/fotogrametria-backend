@@ -691,7 +691,7 @@ EOF
             result.classList.remove('show');
 
             try {
-                const response = await fetch(`${API_URL}/process-photos`, {
+                const response = await fetch(`${BACKEND_URL}/process-photos`, {
                     method: 'POST',
                     body: formData
                 });
