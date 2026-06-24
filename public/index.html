@@ -234,74 +234,383 @@
         }
 
         .result-title {
-            color: #388e3c;
-            font-weight: 600;
-            margin-bottom: 10px;
+            color: #388e3c;cat > index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Captura AR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .result-text {
-            color: #2e7d32;
-            font-size: 14px;
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: white;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .camera-section {
+            flex: 1;
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #000;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            border: 3px dashed #667eea;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #667eea;
+            text-align: center;
+        }
+
+        .count {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .dots {
+            position: absolute;
+            bottom: 140px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid #667eea;
+        }
+
+        .dot.ok {
+            background: #4ade80;
+            border-color: #4ade80;
+        }
+
+        .buttons {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+
+        .start {
+            background: #667eea;
+            color: white;
+        }
+
+        .capture {
+            background: #4ade80;
+            color: white;
+        }
+
+        .cancel {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .process {
+            background: #667eea;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎬 Fotogrametria 3D</h1>
-        <p class="subtitle">Converta suas fotos em modelo 3D</p>
+        <div class="camera-section">
+            <video id="video" playsinline autoplay muted></video>
+            <div class="overlay"></div>
 
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">📸</div>
-            <div class="upload-text">Clique ou arraste fotos aqui</div>
-            <div class="upload-subtext">Mínimo 10 fotos, máximo 30</div>
-            <input type="file" id="fileInput" multiple accept="image/*">
+            <div class="info">
+                <div id="status">Pressione Iniciar</div>
+            </div>
+
+            <div class="count"><span id="count">0</span>/30</div>
+
+            <div class="dots" id="dots"></div>
+
+            <div class="buttons">
+                <button class="start" id="btnStart" onclick="start()">Iniciar</button>
+                <button class="capture hidden" id="btnCapture" onclick="capture()">Capturar</button>
+                <button class="cancel hidden" id="btnCancel" onclick="cancel()">Cancelar</button>
+                <button class="process hidden" id="btnProcess" onclick="process()">Processar</button>
+            </div>
         </div>
-
-        <div class="file-count" id="fileCount"></div>
-
-        <div class="file-list" id="fileList"></div>
-
-        <div class="button-group">
-            <button class="btn-upload" id="uploadBtn" disabled>Enviar Fotos</button>
-            <button class="btn-clear" id="clearBtn">Limpar</button>
-        </div>
-
-        <div class="progress-bar" id="progressBar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-
-        <div class="status" id="status"></div>
-
-        <div class="result" id="result"></div>
     </div>
 
     <script>
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileList = document.getElementById('fileList');
-        const fileCount = document.getElementById('fileCount');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const status = document.getElementById('status');
-        const progressBar = document.getElementById('progressBar');
-        const progressFill = document.getElementById('progressFill');
-        const result = document.getElementById('result');
+        const video = document.getElementById('video');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
 
-        let selectedFiles = [];
+        let photos = [];
+        let isCapturing = false;
+        let photoCount = 0;
+        let stream = null;
 
-        // MUDE ISSO PARA O URL DO SEU SERVIDOR NO RENDER
-        const API_URL = 'https://dashboard.render.com/project/prj-d8tjcl8js32c73bq7b60
+        // URL do seu backend
+        const BACKEND_URL = 'https://fotogrametria-backend.onrender.com';
 
-        uploadArea.addEventListener('click', () => fileInput.click());
+        async function init() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' },
+                    audio: false
+                });
+                video.srcObject = stream;
 
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
+                video.onloadedmetadata = () => {
+                    console.log('Vídeo carregado');
+                    video.play();
+                };
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
+                const dotsContainer = document.getElementById('dots');
+                for (let i = 0; i < 30; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    dot.id = `dot${i}`;
+                    dotsContainer.appendChild(dot);
+                }
+
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            }
+        }
+
+        function start() {
+            isCapturing = true;
+            photos = [];
+            photoCount = 0;
+
+            document.getElementById('btnStart').classList.add('hidden');
+            document.getElementById('btnCapture').classList.remove('hidden');
+            document.getElementById('btnCancel').classList.remove('hidden');
+            document.getElementById('status').textContent = 'Clique para capturar';
+
+            for (let i = 0; i < 30; i++) {
+                document.getElementById(`dot${i}`).classList.remove('ok');
+            }
+        }
+
+        function capture() {
+            if (!isCapturing || photoCount >= 30) return;
+
+            setTimeout(() => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                if (canvas.width === 0 || canvas.height === 0) {
+                    console.error('Vídeo não carregou corretamente');
+                    alert('Erro: câmera não está pronta');
+                    return;
+                }
+
+                ctx.drawImage(video, 0, 0);
+
+                canvas.toBlob(blob => {
+                    if (blob) {
+                        photos.push(blob);
+                        photoCount++;
+
+                        document.getElementById(`dot${photoCount - 1}`).classList.add('ok');
+                        document.getElementById('count').textContent = photoCount;
+
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+
+                        if (photoCount >= 30) {
+                            finish();
+                        }
+                    } else {
+                        alert('Erro ao capturar foto');
+                    }
+                }, 'image/jpeg', 0.85);
+            }, 100);
+        }
+
+        function cancel() {
+            isCapturing = false;
+            photos = [];
+            photoCount = 0;
+
+            document.getElementById('btnStart').classList.remove('hidden');
+            document.getElementById('btnCapture').classList.add('hidden');
+            document.getElementById('btnCancel').classList.add('hidden');
+            document.getElementById('btnProcess').classList.add('hidden');
+            document.getElementById('status').textContent = 'Pressione Iniciar';
+            document.getElementById('count').textContent = '0';
+
+            for (let i = 0; i < 30; i++) {
+                document.getElementById(`dot${i}`).classList.remove('ok');
+            }
+
+            if (video.paused) {
+                video.play().catch(e => console.error('Erro ao reproduzir vídeo:', e));
+            }
+        }
+
+        function finish() {
+            isCapturing = false;
+            document.getElementById('btnCapture').classList.add('hidden');
+            document.getElementById('btnCancel').classList.add('hidden');
+            document.getElementById('btnProcess').classList.remove('hidden');
+            document.getElementById('status').textContent = '✅ Pronto!';
+        }
+
+        async function process() {
+            if (photos.length === 0) {
+                alert('Nenhuma foto capturada');
+                return;
+            }
+
+            document.getElementById('status').textContent = '📤 Enviando fotos...';
+            document.getElementById('btnProcess').disabled = true;
+
+            try {
+                const formData = new FormData();
+                photos.forEach((photo, index) => {
+                    formData.append('photos', photo, `photo_${index}.jpg`);
+                });
+
+                const response = await fetch(`${BACKEND_URL}/process-photos`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro do servidor: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.modelUrl) {
+                    document.getElementById('status').textContent = '✅ Modelo 3D gerado!';
+                    alert('✅ Modelo 3D gerado com sucesso!\n\nURL: ' + result.modelUrl);
+                } else if (result.message) {
+                    document.getElementById('status').textContent = '✅ ' + result.message;
+                    alert('✅ ' + result.message);
+                } else {
+                    document.getElementById('status').textContent = '✅ Processamento concluído!';
+                    alert('✅ Processamento concluído!');
+                }
+
+                resetApp();
+
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('status').textContent = '❌ Erro ao enviar';
+                alert('❌ Erro ao enviar fotos:\n' + error.message);
+                document.getElementById('btnProcess').disabled = false;
+            }
+        }
+
+        function resetApp() {
+            isCapturing = false;
+            photos = [];
+            photoCount = 0;
+
+            document.getElementById('btnStart').classList.remove('hidden');
+            document.getElementById('btnCapture').classList.add('hidden');
+            document.getElementById('btnCancel').classList.add('hidden');
+            document.getElementById('btnProcess').classList.add('hidden');
+            document.getElementById('btnProcess').disabled = false;
+            document.getElementById('status').textContent = 'Pressione Iniciar';
+            document.getElementById('count').textContent = '0';
+
+            for (let i = 0; i < 30; i++) {
+                document.getElementById(`dot${i}`).classList.remove('ok');
+            }
+
+            if (video.paused) {
+                video.play().catch(e => console.error('Erro ao reproduzir vídeo:', e));
+            }
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
+EOF
 
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
